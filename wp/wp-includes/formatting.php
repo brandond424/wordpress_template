@@ -421,9 +421,6 @@ function wpautop($pee, $br = true) {
 	// Standardize newline characters to "\n".
 	$pee = str_replace(array("\r\n", "\r"), "\n", $pee); 
 
-	// Strip newlines from all elements.
-	$pee = wp_replace_in_html_tags( $pee, array( "\n" => " " ) );
-
 	// Collapse line breaks before and after <option> elements so they don't get autop'd.
 	if ( strpos( $pee, '<option' ) !== false ) {
 		$pee = preg_replace( '|\s*<option|', '<option', $pee );
@@ -510,74 +507,6 @@ function wpautop($pee, $br = true) {
 		$pee = str_replace(array_keys($pre_tags), array_values($pre_tags), $pee);
 
 	return $pee;
-}
-
-/**
- * Replace characters or phrases within HTML elements only.
- *
- * @since 4.2.3
- *
- * @param string $haystack The text which has to be formatted.
- * @param array $replace_pairs In the form array('from' => 'to', ...).
- * @return string The formatted text.
- */
-function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
-	// Find all elements.
-	$comments =
-		  '!'           // Start of comment, after the <.
-		. '(?:'         // Unroll the loop: Consume everything until --> is found.
-		.     '-(?!->)' // Dash not followed by end of comment.
-		.     '[^\-]*+' // Consume non-dashes.
-		. ')*+'         // Loop possessively.
-		. '(?:-->)?';   // End of comment. If not found, match all input.
-
-	$regex =
-		  '/('              // Capture the entire match.
-		.     '<'           // Find start of element.
-		.     '(?(?=!--)'   // Is this a comment?
-		.         $comments // Find end of comment.
-		.     '|'
-		.         '[^>]*>?' // Find end of element. If not found, match all input.
-		.     ')'
-		. ')/s';
-
-	$textarr = preg_split( $regex, $haystack, -1, PREG_SPLIT_DELIM_CAPTURE );
-	$changed = false;
-
-	// Optimize when searching for one item.
-	if ( 1 === count( $replace_pairs ) ) {
-		// Extract $needle and $replace.
-		foreach ( $replace_pairs as $needle => $replace );
-
-		// Loop through delimeters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) { 
-			if ( false !== strpos( $textarr[$i], $needle ) ) {
-				$textarr[$i] = str_replace( $needle, $replace, $textarr[$i] );
-				$changed = true;
-			}
-		}
-	} else {
-		// Extract all $needles.
-		$needles = array_keys( $replace_pairs );
-
-		// Loop through delimeters (elements) only.
-		for ( $i = 1, $c = count( $textarr ); $i < $c; $i += 2 ) { 
-			foreach ( $needles as $needle ) {
-				if ( false !== strpos( $textarr[$i], $needle ) ) {
-					$textarr[$i] = strtr( $textarr[$i], $replace_pairs );
-					$changed = true;
-					// After one strtr() break out of the foreach loop and look at next element.
-					break;
-				}
-			}
-		}
-	}
-
-	if ( $changed ) {
-		$haystack = implode( $textarr );
-	}
-
-	return $haystack;
 }
 
 /**
@@ -3398,19 +3327,16 @@ function wp_make_link_relative( $link ) {
  */
 function sanitize_option($option, $value) {
 	global $wpdb;
-	$error = '';
 
 	switch ( $option ) {
 		case 'admin_email' :
 		case 'new_admin_email' :
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				$value = sanitize_email( $value );
-				if ( ! is_email( $value ) ) {
-					$error = __( 'The email address entered did not appear to be a valid email address. Please enter a valid email address.' );
-				}
+			$value = sanitize_email( $value );
+			if ( ! is_email( $value ) ) {
+				$value = get_option( $option ); // Resets option to stored value in the case of failed sanitization
+				if ( function_exists( 'add_settings_error' ) )
+					add_settings_error( $option, 'invalid_admin_email', __( 'The email address entered did not appear to be a valid email address. Please enter a valid email address.' ) );
 			}
 			break;
 
@@ -3455,12 +3381,8 @@ function sanitize_option($option, $value) {
 		case 'blogdescription':
 		case 'blogname':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				$value = wp_kses_post( $value );
-				$value = esc_html( $value );
-			}
+			$value = wp_kses_post( $value );
+			$value = esc_html( $value );
 			break;
 
 		case 'blog_charset':
@@ -3482,12 +3404,8 @@ function sanitize_option($option, $value) {
 		case 'mailserver_pass':
 		case 'upload_path':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				$value = strip_tags( $value );
-				$value = wp_kses_data( $value );
-			}
+			$value = strip_tags( $value );
+			$value = wp_kses_data( $value );
 			break;
 
 		case 'ping_sites':
@@ -3503,27 +3421,23 @@ function sanitize_option($option, $value) {
 
 		case 'siteurl':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
+			if ( (bool)preg_match( '#http(s?)://(.+)#i', $value) ) {
+				$value = esc_url_raw($value);
 			} else {
-				if ( preg_match( '#http(s?)://(.+)#i', $value ) ) {
-					$value = esc_url_raw( $value );
-				} else {
-					$error = __( 'The WordPress address you entered did not appear to be a valid URL. Please enter a valid URL.' );
-				}
+				$value = get_option( $option ); // Resets option to stored value in the case of failed sanitization
+				if ( function_exists('add_settings_error') )
+					add_settings_error('siteurl', 'invalid_siteurl', __('The WordPress address you entered did not appear to be a valid URL. Please enter a valid URL.'));
 			}
 			break;
 
 		case 'home':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
+			if ( (bool)preg_match( '#http(s?)://(.+)#i', $value) ) {
+				$value = esc_url_raw($value);
 			} else {
-				if ( preg_match( '#http(s?)://(.+)#i', $value ) ) {
-					$value = esc_url_raw( $value );
-				} else {
-					$error = __( 'The Site address you entered did not appear to be a valid URL. Please enter a valid URL.' );
-				}
+				$value = get_option( $option ); // Resets option to stored value in the case of failed sanitization
+				if ( function_exists('add_settings_error') )
+					add_settings_error('home', 'invalid_home', __('The Site address you entered did not appear to be a valid URL. Please enter a valid URL.'));
 			}
 			break;
 
@@ -3539,45 +3453,38 @@ function sanitize_option($option, $value) {
 
 		case 'illegal_names':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				if ( ! is_array( $value ) )
-					$value = explode( ' ', $value );
+			if ( ! is_array( $value ) )
+				$value = explode( ' ', $value );
 
-				$value = array_values( array_filter( array_map( 'trim', $value ) ) );
+			$value = array_values( array_filter( array_map( 'trim', $value ) ) );
 
-				if ( ! $value )
-					$value = '';
-			}
+			if ( ! $value )
+				$value = '';
 			break;
 
 		case 'limited_email_domains':
 		case 'banned_email_domains':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				if ( ! is_array( $value ) )
-					$value = explode( "\n", $value );
+			if ( ! is_array( $value ) )
+				$value = explode( "\n", $value );
 
-				$domains = array_values( array_filter( array_map( 'trim', $value ) ) );
-				$value = array();
+			$domains = array_values( array_filter( array_map( 'trim', $value ) ) );
+			$value = array();
 
-				foreach ( $domains as $domain ) {
-					if ( ! preg_match( '/(--|\.\.)/', $domain ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $domain ) ) {
-						$value[] = $domain;
-					}
-				}
-				if ( ! $value )
-					$value = '';
+			foreach ( $domains as $domain ) {
+				if ( ! preg_match( '/(--|\.\.)/', $domain ) && preg_match( '|^([a-zA-Z0-9-\.])+$|', $domain ) )
+					$value[] = $domain;
 			}
+			if ( ! $value )
+				$value = '';
 			break;
 
 		case 'timezone_string':
 			$allowed_zones = timezone_identifiers_list();
 			if ( ! in_array( $value, $allowed_zones ) && ! empty( $value ) ) {
-				$error = __( 'The timezone you have entered is not valid. Please select a valid timezone.' );
+				$value = get_option( $option ); // Resets option to stored value in the case of failed sanitization
+				if ( function_exists('add_settings_error') )
+					add_settings_error('timezone_string', 'invalid_timezone_string', __('The timezone you have entered is not valid. Please select a valid timezone.') );
 			}
 			break;
 
@@ -3585,12 +3492,8 @@ function sanitize_option($option, $value) {
 		case 'category_base':
 		case 'tag_base':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				$value = esc_url_raw( $value );
-				$value = str_replace( 'http://', '', $value );
-			}
+			$value = esc_url_raw( $value );
+			$value = str_replace( 'http://', '', $value );
 			break;
 
 		case 'default_role' :
@@ -3601,22 +3504,11 @@ function sanitize_option($option, $value) {
 		case 'moderation_keys':
 		case 'blacklist_keys':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
-			if ( is_wp_error( $value ) ) {
-				$error = $value->get_error_message();
-			} else {
-				$value = explode( "\n", $value );
-				$value = array_filter( array_map( 'trim', $value ) );
-				$value = array_unique( $value );
-				$value = implode( "\n", $value );
-			}
+			$value = explode( "\n", $value );
+			$value = array_filter( array_map( 'trim', $value ) );
+			$value = array_unique( $value );
+			$value = implode( "\n", $value );
 			break;
-	}
-
-	if ( ! empty( $error ) ) {
-		$value = get_option( $option );
-		if ( function_exists( 'add_settings_error' ) ) {
-			add_settings_error( $option, "invalid_{$option}", $error );
-		}
 	}
 
 	/**
@@ -4248,9 +4140,8 @@ function print_emoji_detection_script() {
 	);
 
 	$version = 'ver=' . $wp_version;
-	$develop_src = false !== strpos( $wp_version, '-src' );
 
-	if ( $develop_src || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
+	if ( SCRIPT_DEBUG ) {
 		$settings['source'] = array(
 			/** This filter is documented in wp-includes/class.wp-scripts.php */
 			'wpemoji' => apply_filters( 'script_loader_src', includes_url( "js/wp-emoji.js?$version" ), 'wpemoji' ),
@@ -4283,7 +4174,7 @@ function print_emoji_detection_script() {
 		?>
 		<script type="text/javascript">
 			window._wpemojiSettings = <?php echo wp_json_encode( $settings ); ?>;
-			!function(a,b,c){function d(a){var c=b.createElement("canvas"),d=c.getContext&&c.getContext("2d");return d&&d.fillText?(d.textBaseline="top",d.font="600 32px Arial","flag"===a?(d.fillText(String.fromCharCode(55356,56812,55356,56807),0,0),c.toDataURL().length>3e3):(d.fillText(String.fromCharCode(55357,56835),0,0),0!==d.getImageData(16,16,1,1).data[0])):!1}function e(a){var c=b.createElement("script");c.src=a,c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g;c.supports={simple:d("simple"),flag:d("flag")},c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.simple&&c.supports.flag||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+			!function(a,b,c){function d(a){var c=b.createElement("canvas"),d=c.getContext&&c.getContext("2d");return d&&d.fillText?(d.textBaseline="top",d.font="600 32px Arial","flag"===a?(d.fillText(String.fromCharCode(55356,56812,55356,56807),0,0),c.toDataURL().length>3e3):(d.fillText(String.fromCharCode(55357,56835),0,0),0!==d.getImageData(16,16,1,1).data[0])):!1}function e(a){var c=b.createElement("script");c.src=a,c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f;c.supports={simple:d("simple"),flag:d("flag")},c.supports.simple&&c.supports.flag||(f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
 		</script>
 		<?php
 	}

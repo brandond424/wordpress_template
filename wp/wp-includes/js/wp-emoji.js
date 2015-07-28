@@ -4,6 +4,24 @@
 		var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver,
 
 		/**
+		 * Flag to determine if the browser and the OS support emoji.
+		 *
+		 * @since 4.2.0
+		 *
+		 * @var Boolean
+		 */
+		supportsEmoji = false,
+
+		/**
+		 * Flag to determine if the browser and the OS support flag (two character) emoji.
+		 *
+		 * @since 4.2.0
+		 *
+		 * @var Boolean
+		 */
+		supportsFlagEmoji = false,
+
+		/**
 		 * Flag to determine if we should replace emoji characters with images.
 		 *
 		 * @since 4.2.0
@@ -12,9 +30,10 @@
 		 */
 		replaceEmoji = false,
 
+		isIE8 = window.navigator.userAgent.indexOf( 'IE 8' ) !== -1,
+
 		// Private
 		twemoji, timer,
-		loaded = false,
 		count = 0;
 
 		/**
@@ -23,10 +42,6 @@
 		 * @since 4.2.0
 		 */
 		function load() {
-			if ( loaded ) {
-				return;
-			}
-
 			if ( typeof window.twemoji === 'undefined' ) {
 				// Break if waiting for longer than 30 sec.
 				if ( count > 600 ) {
@@ -42,41 +57,25 @@
 			}
 
 			twemoji = window.twemoji;
-			loaded = true;
 
 			if ( MutationObserver ) {
 				new MutationObserver( function( mutationRecords ) {
 					var i = mutationRecords.length,
-						addedNodes, removedNodes, ii, node;
+						ii, node;
 
 					while ( i-- ) {
-						addedNodes = mutationRecords[ i ].addedNodes;
-						removedNodes = mutationRecords[ i ].removedNodes;
-						ii = addedNodes.length;
-
-						if (
-							ii === 1 && removedNodes.length === 1 &&
-							addedNodes[0].nodeType === 3 &&
-							removedNodes[0].nodeName === 'IMG' &&
-							addedNodes[0].data === removedNodes[0].alt
-						) {
-							return;
-						}
+						ii = mutationRecords[ i ].addedNodes.length;
 
 						while ( ii-- ) {
-							node = addedNodes[ ii ];
+							node = mutationRecords[ i ].addedNodes[ ii ];
 
 							if ( node.nodeType === 3 ) {
 								node = node.parentNode;
 							}
 
-							if ( ! node || node.nodeType !== 1 || ( 'ownerSVGElement' in node ) ||
-								( node.className && typeof node.className === 'string' && node.className.indexOf( 'wp-exclude-emoji' ) !== -1 ) ) {
-
- 								continue;
- 							}
-
-							parse( node );
+							if ( node && node.nodeType === 1 ) {
+								parse( node );
+							}
 						}
 					}
 				} ).observe( document.body, {
@@ -97,7 +96,7 @@
 		 * @param {Object} args Additional options for Twemoji.
 		 */
 		function parse( object, args ) {
-			if ( ! replaceEmoji || ! twemoji ) {
+			if ( ! replaceEmoji ) {
 				return object;
 			}
 
@@ -122,7 +121,7 @@
 							return false;
 					}
 
-					if ( ! settings.supports.flag && settings.supports.simple &&
+					if ( ! supportsFlagEmoji && supportsEmoji &&
 						! /^1f1(?:e[6-9a-f]|f[0-9a-f])-1f1(?:e[6-9a-f]|f[0-9a-f])$/.test( icon ) ) {
 
 						return false;
@@ -133,16 +132,29 @@
 			} );
 		}
 
+		// Load when the readyState changes to 'interactive', not 'complete'.
+		function onLoad() {
+			if ( ( ! isIE8 && 'interactive' === document.readyState ) || ( isIE8 && 'complete' === document.readyState ) ) {
+				load();
+			}
+		}
+
 		/**
 		 * Initialize our emoji support, and set up listeners.
 		 */
 		if ( settings ) {
-			replaceEmoji = ! settings.supports.simple || ! settings.supports.flag;
+			supportsEmoji = window._wpemojiSettings.supports.simple;
+			supportsFlagEmoji = window._wpemojiSettings.supports.flag;
+			replaceEmoji = ! supportsEmoji || ! supportsFlagEmoji;
 
-			if ( settings.DOMReady ) {
-				load();
+			if ( ( ! isIE8 && 'loading' === document.readyState ) || ( isIE8 && 'complete' !== document.readyState ) ) {
+				if ( document.addEventListener ) {
+					document.addEventListener( 'readystatechange', onLoad, false );
+				} else if ( document.attachEvent ) {
+					document.attachEvent( 'onreadystatechange', onLoad );
+				}
 			} else {
-				settings.readyCallback = load;
+				load();
 			}
 		}
 
