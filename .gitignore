@@ -2,3 +2,4 @@
 vendor/
 .env
 app/mu-plugins
+wp
