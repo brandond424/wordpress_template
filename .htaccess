@@ -12,3 +12,9 @@ RewriteRule ^ - [L]
 RewriteRule ^([_0-9a-zA-Z-]+/)?(wp-(content|admin|includes).*) wp/$2 [L]
 RewriteRule ^([_0-9a-zA-Z-]+/)?(.*\.php)$ wp/$2 [L]
 RewriteRule . index.php [L]
+
+# Protect wp-config.php
+<Files wp-config.php>
+    order allow,deny
+    deny from all
+</Files>
