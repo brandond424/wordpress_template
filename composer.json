@@ -1,31 +1,7 @@
 {
-  	"name": "",
+  	"name": "BD Wordpress",
   	"description": "",
-  	"license": "proprietary",
-  	"repositories": [
-	    	{
-	      		"type": "composer",
-	      		"url": "http://wpackagist.org"
-	    	}
-  	],
   	"require": {
-  		"mnsami/composer-custom-directory-installer": "1.0.*",
-    		"johnpbloch/wordpress": "4.2.0",
-  	  	"vlucas/phpdotenv": "^2.0",
-  	  	"wpackagist-plugin/simple-page-ordering": "~2.2"
-  	},
-  	"extra": {
-    		"wordpress-install-dir": "./wp",
-    		"installer-paths": {
-      			"./phpdotenv/": ["vlucas/phpdotenv"],
-      			"./app/plugins/{$name}/": [
-       			"type:wordpress-plugin",
-       			"type:library"
-      			],
-     		"./app/themes/{$name}/": ["type:wordpress-theme"]
-    		}
-  	},
-  	"config": {
-    		"vendor-dir": "./app/mu-plugins"
+  	  "vlucas/phpdotenv": "^2.0"
   	}
 }

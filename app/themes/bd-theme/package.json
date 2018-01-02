@@ -1,0 +1,14 @@
+{
+  "name": "bd-teheme",
+  "version": "1.0.0",
+  "description": "BD Starter WP Theme",
+  "main": "gulpfile.js",
+  "author": "Brandon Diaz",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.4.1",
+    "gulp-util": "^3.0.8"
+  }
+}

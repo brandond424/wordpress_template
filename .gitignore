@@ -1,3 +1,5 @@
 .DS_Store
 vendor/
 .env
+app/themes/*/bower_components
+app/themes/*/node_modules

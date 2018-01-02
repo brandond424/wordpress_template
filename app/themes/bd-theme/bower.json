@@ -1,0 +1,25 @@
+{
+  "name": "bd-starter-wp-theme",
+  "description": "Starter Wordpress Theme",
+  "main": "gulpfile.js",
+  "authors": [
+    "Brandon Diaz"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "jquery": "^3.1.1",
+    "Modernizr": "https://github.com/Modernizr/Modernizr.git#^3.5.0",
+    "urijs": "https://github.com/medialize/URI.js.git#^1.19.0",
+    "bootstrap": "https://github.com/twbs/bootstrap.git#^3.3.7"
+  },
+  "devDependencies": {
+    "jquery-hoverintent": "https://github.com/briancherne/jquery-hoverIntent.git#^1.9.0",
+    "slick-carousel": "https://github.com/kenwheeler/slick.git#^1.8.1",
+    "font-awesome": "https://github.com/FortAwesome/Font-Awesome.git#^4.7.0"
+  }
+}
