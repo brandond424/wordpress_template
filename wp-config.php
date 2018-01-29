@@ -27,10 +27,10 @@ define('LOGGED_IN_SALT',   'put your unique phrase here');
 define('NONCE_SALT',       'put your unique phrase here');
 
 // Content Directories //
-define( 'WP_CONTENT_DIR', dirname( __FILE__ ) . '/app' );
-define( 'WP_CONTENT_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/app' );
-define( 'WPMU_PLUGIN_DIR', dirname( __FILE__ ) . '/app/mu-plugins' );
-define( 'WPMU_PLUGIN_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/app/mu-plugins' );
+define( 'WP_CONTENT_DIR', dirname( __FILE__ ) . '/site' );
+define( 'WP_CONTENT_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/site' );
+define( 'WPMU_PLUGIN_DIR', dirname( __FILE__ ) . '/site/mu-plugins' );
+define( 'WPMU_PLUGIN_URL', 'http://' . $_SERVER['HTTP_HOST'] . '/site/mu-plugins' );
 
 // DB Prefix //
 $table_prefix  = 'wp_';
@@ -50,7 +50,7 @@ if (WP_DEBUG) {
 	define('WP_ALLOW_REPAIR', true);
 	@ini_set('display_errors', 0);
 	@ini_set( 'error_reporting', E_ALL ^ E_NOTICE );
-	@ini_set('error_log', dirname(__FILE__) . '/app/php-errors.log');
+	@ini_set('error_log', dirname(__FILE__) . '/site/php-errors.log');
 }
 
 if ( !defined('ABSPATH') )
