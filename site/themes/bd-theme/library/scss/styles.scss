@@ -59,6 +59,34 @@ a {
 	outline:none;
 }
 
+.nopadding {
+	padding:0 !important;
+}
+
+.nopadding-left {
+	padding-left:0 !important;
+}
+
+.nopadding-right {
+	padding-right:0 !important;
+}
+
+.desktop-only {
+	display: block;
+
+	@media(max-width: 767px) {
+		display: none;
+	}
+}
+
+.mobile-only {
+	display: none;
+
+	@media(max-width: 767px) {
+		display: block;
+	}
+}
+
 /*********************
 404 Page
 *********************/

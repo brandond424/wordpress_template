@@ -3,9 +3,13 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var sass = require('gulp-sass');
+var uglify = require('gulp-uglify');
+var pump = require('pump');
+
 var sourcemaps = require('gulp-sourcemaps');
 var sassInput = 'library/scss/styles.scss';
 var sassOutput = 'library/css';
+var javascriptDir = 'library/js/';
 
 var sassOptions = {
 	errLogToConsole: true,
@@ -33,9 +37,31 @@ gulp.task('sass-prod', function () {
     .pipe(gulp.dest(sassOutput));
 });
 
+gulp.task('javascript-prod', function (cb) {
+  pump([
+        gulp.src(javascriptDir + '*.js'),
+        uglify(),
+        gulp.dest(javascriptDir)
+    ],
+    cb
+  );
+});
+
+
 gulp.task('watch', function () {
 	gulp.watch(sassInput, ['sass']);
 });
 
 gulp.task('default', ['sass', 'watch']);
-gulp.task('prod', ['sass-prod']);
+gulp.task('prod', ['sass-prod', 'javascript-prod']);
+
+
+
+
+
+
+
+
+
+
+

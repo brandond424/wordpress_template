@@ -5,16 +5,37 @@
 
 // Composer
 include(dirname( __FILE__ ) . '/vendor/autoload.php');
-$dotenv = new Dotenv\Dotenv(__DIR__, "localhost.env");
-$dotenv->load();
 
 // MySQL settings //
-define('DB_NAME', getenv('DB_NAME'));
-define('DB_USER', getenv('DB_USER'));
-define('DB_PASSWORD', getenv('DB_PASS'));
-define('DB_HOST', getenv('DB_HOST'));
-define('DB_CHARSET', 'utf8');
-define('DB_COLLATE', '');
+$devENV = array(
+	'127.0.0.1',
+	'::1',
+	'localhost'
+);
+
+if (in_array($_SERVER['HTTP_HOST'], $devENV)) {
+    define('WP_ENV', 'local');
+}
+else {
+	define('WP_ENV', 'staging');
+}
+
+if (WP_ENV == 'local') {
+	define('DB_NAME', '');
+	define('DB_USER', 'root');
+	define('DB_PASSWORD', 'root');
+	define('DB_HOST', 'localhost');
+	define('DB_CHARSET', 'utf8');
+	define('DB_COLLATE', '');
+}
+else {
+	define('DB_NAME', '');
+	define('DB_USER', '');
+	define('DB_PASSWORD', '');
+	define('DB_HOST', 'localhost');
+	define('DB_CHARSET', 'utf8');
+	define('DB_COLLATE', '');
+}
 
 // Salts  @{ https://api.wordpress.org/secret-key/1.1/salt/ } //
 define('AUTH_KEY',         'put your unique phrase here');
