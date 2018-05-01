@@ -1,7 +1,0 @@
-{
-  	"name": "BD Wordpress",
-  	"description": "",
-  	"require": {
-  	  "vlucas/phpdotenv": "^2.0"
-  	}
-}

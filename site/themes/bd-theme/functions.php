@@ -109,7 +109,9 @@ function remove_admin_bar() {
 
 add_filter('upload_mimes', 'custom_upload_mimes');
 function custom_upload_mimes ( $existing_mimes=array() ){
-  $existing_mimes['vcf'] = 'text/x-vcard'; return $existing_mimes;
+  $existing_mimes['svg'] = 'image/svg+xml';
+  $existing_mimes['vcf'] = 'text/x-vcard'; 
+  return $existing_mimes;
 }
 
 

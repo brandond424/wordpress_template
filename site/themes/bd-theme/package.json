@@ -1,16 +1,25 @@
 {
-  "name": "bd-teheme",
+  "name": "bd-theme",
   "version": "1.0.0",
   "description": "BD Starter WP Theme",
   "main": "gulpfile.js",
   "author": "Brandon Diaz",
   "license": "ISC",
   "devDependencies": {
+    "browser-sync": "^2.23.6",
     "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-filter": "^5.1.0",
+    "gulp-main-bower-files": "^1.6.2",
+    "gulp-minify": "^2.1.0",
+    "gulp-rename": "^1.2.2",
     "gulp-sass": "^3.1.0",
-    "gulp-sourcemaps": "^2.4.1",
+    "gulp-sourcemaps": "^2.6.4",
     "gulp-uglify": "^3.0.0",
     "gulp-util": "^3.0.8",
     "pump": "^2.0.1"
+  },
+  "dependencies": {
+    "npm": "^5.8.0"
   }
 }
