@@ -18,3 +18,5 @@ RewriteRule . index.php [L]
     order allow,deny
     deny from all
 </Files>
+
+Options All -Indexes

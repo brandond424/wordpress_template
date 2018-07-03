@@ -21,7 +21,7 @@ else {
 }
 
 if (WP_ENV == 'local') {
-	define('DB_NAME', '');
+	define('DB_NAME', 'test_db');
 	define('DB_USER', 'root');
 	define('DB_PASSWORD', 'root');
 	define('DB_HOST', 'localhost');

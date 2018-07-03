@@ -33,7 +33,32 @@
 
 	<div id="site">
 		<header>
-			<div class="container">
-				
+			<div class="page-container">
+				<div class="col-md-3 nopadding">
+					<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="logo">
+						<img src="">
+					</a>
+				</div>
+				<div class="col-md-9 nopadding">
+					<div class="main_menu">
+						<?php
+							// $main_menu_args = array('menu' => 'Main Menu');
+							// wp_nav_menu($main_menu_args);
+						?>
+					</div>
+
+					<div class="mobile-menu">
+						<div class="hamburger">
+							<span></span>
+							<span></span>
+							<span></span>
+							<span></span>
+						</div>
+						<?php
+							// $mobile_menu_args = array('menu' => 'Main Menu');
+							// wp_nav_menu($mobile_menu_args);
+						?>
+					</div>
+				</div>
 			</div>
 		</header>

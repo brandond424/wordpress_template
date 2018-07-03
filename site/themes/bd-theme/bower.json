@@ -20,6 +20,8 @@
   "devDependencies": {
     "jquery-hoverintent": "https://github.com/briancherne/jquery-hoverIntent.git#^1.9.0",
     "slick-carousel": "https://github.com/kenwheeler/slick.git#^1.8.1",
-    "font-awesome": "https://github.com/FortAwesome/Font-Awesome.git#^4.7.0"
+    "font-awesome": "https://github.com/FortAwesome/Font-Awesome.git#^4.7.0",
+    "Font-Awesome": "https://github.com/FortAwesome/Font-Awesome.git#^5.0.12",
+    "matchHeight": "https://github.com/liabru/jquery-match-height.git#^0.7.2"
   }
 }
